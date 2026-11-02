@@ -56,22 +56,29 @@ export class ChallansController {
       nextCursor = next ? next.challanId : null;
     }
 
+    const mapped = items.map((c) => ({
+      challanId: c.challanId,
+      vehicleId: c.vehicleId,
+      registrationNo: c.vehicle.registrationNo,
+      challanDate: c.challanDate,
+      challanType: c.challanType,
+      violationCode: c.violationCode,
+      violationDesc: c.violationDesc,
+      severity: c.severity,
+      amountPaise: Number(c.amountPaise),
+      status: c.status,
+      dueDate: c.dueDate,
+      paymentDate: c.paymentDate,
+      scoringEligible: c.scoringEligible
+    }));
+
     res.status(200).json({
-      items: items.map((c) => ({
-        challanId: c.challanId,
-        vehicleId: c.vehicleId,
-        registrationNo: c.vehicle.registrationNo,
-        challanDate: c.challanDate,
-        challanType: c.challanType,
-        violationCode: c.violationCode,
-        violationDesc: c.violationDesc,
-        severity: c.severity,
-        amountPaise: Number(c.amountPaise),
-        status: c.status,
-        dueDate: c.dueDate,
-        paymentDate: c.paymentDate,
-        scoringEligible: c.scoringEligible
-      })),
+      items: mapped,
+      challans: mapped,
+      pagination: {
+        nextCursor,
+        hasMore: !!nextCursor
+      },
       nextCursor,
       totalCount
     });

@@ -79,6 +79,20 @@ async function request<T>(
 
 export const api = {
   auth: {
+    login: (mobile: string, pan: string) =>
+      request<{
+        accessToken: string;
+        expiresIn: number;
+        user: {
+          userId: string;
+          fullName: string;
+          panMasked: string;
+          vehicleCount: number;
+        };
+      }>("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ mobile, pan }),
+      }),
     requestOtp: (mobile: string, pan: string) =>
       request<{ sessionId: string; expiresAt: string; message: string; simulatedOtp?: string }>(
         "/auth/otp/request",
@@ -156,7 +170,10 @@ export const api = {
   vehicles: {
     getVehicles: () =>
       request<{
-        vehicles: Array<{
+        vehicles: Array<VehicleItem>;
+        totalCount?: number;
+        owner?: VehicleOwner | null;
+        /* legacy */ _unused?: Array<{
           vehicleId: string;
           registrationNo: string;
           vehicleType: string;
@@ -176,7 +193,10 @@ export const api = {
       }>("/users/me/vehicles"),
     getVehicle: (regNo: string) =>
       request<{
-        vehicle: {
+        vehicle: VehicleItem;
+        owner?: VehicleOwner;
+        rcDetails?: VehicleRcDetails;
+        /* legacy */ _unused?: {
           vehicleId: string;
           registrationNo: string;
           vehicleType: string;
@@ -382,6 +402,58 @@ export const api = {
     },
   },
 };
+
+export interface VehicleOwner {
+  fullName: string;
+  mobile: string;
+  panMasked: string;
+  city: string;
+  state: string;
+}
+
+export interface VehicleRcDetails {
+  rcNumber: string;
+  ownerName: string;
+  registeredMobile: string;
+  panMasked: string;
+  status: string;
+  validityTill: string;
+  vehicleClass: string;
+  manufacturer: string;
+  modelName: string;
+  modelYear: number;
+  engineNo: string;
+  chassisNo: string;
+  fuelType: string;
+  color: string;
+  registeredAt: string;
+  rtoLocation: string;
+}
+
+export interface VehicleItem {
+  vehicleId: string;
+  registrationNo: string;
+  vehicleType: string;
+  manufacturer: string;
+  model: string;
+  modelYear?: number;
+  engineNo?: string;
+  chassisNo?: string;
+  fuelType?: string;
+  color?: string;
+  registrationDate: string;
+  insuranceExpiry: string | null;
+  pucExpiry: string | null;
+  rcValidityTill: string;
+  compliance: {
+    insuranceValid: boolean;
+    pucValid: boolean;
+    rcValid: boolean;
+    fullyCompliant: boolean;
+  };
+  owner?: VehicleOwner;
+  rcDetails?: VehicleRcDetails;
+}
 
 export interface ChallanItem {
   challanId: string;

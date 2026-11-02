@@ -32,7 +32,7 @@ export const AdminLayout: React.FC = () => {
     { to: "/admin/disputes", label: "Disputes Queue", icon: AlertTriangle },
     { to: "/admin/citizens", label: "Citizens & Fleet", icon: Users },
     { to: "/admin/transactions", label: "Transactions & Refunds", icon: CreditCard },
-    { to: "/admin/governance", label: "Governance & Policies", icon: Sliders },
+
     { to: "/admin/audit", label: "Audit Logs & Export", icon: FileText },
     { to: "/admin/system", label: "System Maintenance", icon: Database },
   ];
@@ -117,7 +117,7 @@ export const AdminLayout: React.FC = () => {
 
       {/* Admin Footer */}
       <footer className="bg-slate-900 text-slate-400 text-xs py-4 border-t border-slate-800 text-center">
-        Vehicle Accountability Index (VAI) • Ministry of Road Transport and Highways (MoRTH) Prototype
+        Vehicle Accountability Index (VAI) • Ministry of Road Transport and Highways (MoRTH)
       </footer>
     </div>
   );

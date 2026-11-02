@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
-import { Shield, ArrowRight, AlertCircle, Sparkles } from "lucide-react";
+import { Shield, ArrowRight, AlertCircle } from "lucide-react";
 import { DummyBanner } from "../../components/DummyBanner";
 import { api, ApiError } from "../../api/client";
 import { useSessionStore } from "./sessionStore";
@@ -8,10 +8,10 @@ import { useSessionStore } from "./sessionStore";
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { setPendingOtp, setSimulatedOtpBanner } = useSessionStore();
+  const { setAccessToken, setUser } = useSessionStore();
 
-  const [mobile, setMobile] = useState(searchParams.get("mobile") || "+919000000001");
-  const [pan, setPan] = useState(searchParams.get("pan") || "DUMMY1001X");
+  const [mobile, setMobile] = useState(searchParams.get("mobile") || "");
+  const [pan, setPan] = useState(searchParams.get("pan") || "");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,7 +33,7 @@ export const LoginPage: React.FC = () => {
     }
     const cleanPan = pan.trim().toUpperCase();
 
-    // Validation (P3: DUMMY1001X matches standard 10-char PAN regex)
+    // Validation (10-char PAN regex)
     const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
     if (!panRegex.test(cleanPan)) {
       setError("Please enter a valid 10-character PAN (e.g. DUMMY1001X)");
@@ -42,35 +42,32 @@ export const LoginPage: React.FC = () => {
 
     try {
       setLoading(true);
-      const res = await api.auth.requestOtp(cleanMobile, cleanPan);
-      
-      setPendingOtp({
-        sessionId: res.sessionId,
-        mobile: cleanMobile,
-        pan: cleanPan,
-        expiresAt: res.expiresAt,
-        simulatedOtp: res.simulatedOtp || "482913",
-      });
+      const res = await api.auth.login(cleanMobile, cleanPan);
 
-      // Show OTP in dummy banner
-      setSimulatedOtpBanner(res.simulatedOtp || "482913");
+      // Store credentials and user
+      setAccessToken(res.accessToken);
+      setUser(res.user);
 
-      navigate("/verify");
+      // Check consent status and redirect directly
+      try {
+        const consentRes = await api.consents.getConsents();
+        if (consentRes.consents && consentRes.consents.length >= 2) {
+          navigate("/dashboard");
+        } else {
+          navigate("/consent");
+        }
+      } catch {
+        navigate("/consent");
+      }
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError(err.message);
       } else {
-        setError("Failed to request OTP. Please verify your connection.");
+        setError("Failed to sign in. Please verify your mobile and PAN.");
       }
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleFillDemo = (demoMobile: string, demoPan: string) => {
-    setMobile(demoMobile);
-    setPan(demoPan);
-    setError(null);
   };
 
   return (
@@ -92,9 +89,9 @@ export const LoginPage: React.FC = () => {
       <main className="flex-1 flex items-center justify-center p-4 sm:p-6">
         <div className="w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
           <div className="space-y-1 text-center">
-            <h1 className="text-2xl font-black text-slate-900">Sign In with Mobile & PAN</h1>
+            <h1 className="text-2xl font-black text-slate-900">Citizen Sign In</h1>
             <p className="text-sm text-slate-500">
-              We verify your driving compliance and vehicle records securely.
+              Enter your Mobile Number and PAN to access your vehicle accountability score and renewal discounts.
             </p>
           </div>
 
@@ -111,7 +108,7 @@ export const LoginPage: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="mobile" className="block text-sm font-semibold text-slate-700 mb-1">
-                Mobile Number (E.164)
+                Mobile Number
               </label>
               <input
                 id="mobile"
@@ -119,11 +116,11 @@ export const LoginPage: React.FC = () => {
                 required
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value)}
-                placeholder="+919000000001"
+                placeholder="+91 90000 00001"
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 text-base text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition min-h-[44px]"
               />
               <span className="text-xs text-slate-500 mt-1 block">
-                Use reserved prototype range (+91 90000 00001 - 00010)
+                Enter your mobile number (e.g. +91 90000 00001)
               </span>
             </div>
 
@@ -142,7 +139,7 @@ export const LoginPage: React.FC = () => {
                 className="w-full px-4 py-3 rounded-xl border border-slate-300 text-base font-mono uppercase text-slate-900 placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 transition min-h-[44px]"
               />
               <span className="text-xs text-slate-500 mt-1 block">
-                Use prototype PANs (DUMMY1001X - DUMMY1010X)
+                Enter your 10-character PAN (e.g. DUMMY1001X)
               </span>
             </div>
 
@@ -151,41 +148,10 @@ export const LoginPage: React.FC = () => {
               disabled={loading}
               className="w-full flex items-center justify-center gap-2 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 disabled:opacity-60 text-white text-base font-bold py-3.5 px-4 rounded-xl shadow-sm transition min-h-[48px]"
             >
-              <span>{loading ? "Sending OTP..." : "Request OTP"}</span>
+              <span>{loading ? "Signing In..." : "Sign In"}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-
-          {/* Quick Demo Pre-fills */}
-          <div className="pt-4 border-t border-slate-100">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
-              Quick Fill Demo Personas:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => handleFillDemo("+919000000001", "DUMMY1001X")}
-                className="text-xs font-medium bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 transition min-h-[36px]"
-              >
-                U001 (Priya, 765)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFillDemo("+919000000002", "DUMMY1002X")}
-                className="text-xs font-medium bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 transition min-h-[36px]"
-              >
-                U002 (Rajesh, 742)
-              </button>
-              <button
-                type="button"
-                onClick={() => handleFillDemo("+919000000003", "DUMMY1003X")}
-                className="text-xs font-medium bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 transition min-h-[36px]"
-              >
-                U003 (Vikram, 591)
-              </button>
-            </div>
-          </div>
         </div>
       </main>
     </div>

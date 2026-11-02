@@ -37,8 +37,8 @@ export const AdminDashboardPage: React.FC = () => {
     VERY_GOOD: { count: 0, percentage: 0 },
   };
 
-  const totalPaise = revenue?.totalPayablePaise ?? revenue?.totalVolumePaise ?? 0;
-  const platformFeePaise = revenue?.totalPlatformFeePaise ?? revenue?.grossFeeRevenuePaise ?? 0;
+  const totalPaise = revenue?.totalPayablePaise ?? 0;
+  const platformFeePaise = revenue?.totalPlatformFeePaise ?? 0;
   const discountPaise = revenue?.totalDiscountPaise ?? 0;
   const activeFeeOptionCode = revenue?.activeFeeOption?.optionCode || "A";
   const activeFeePpm = revenue?.activeFeeOption?.ppm ?? 150;

@@ -3,6 +3,10 @@ import { authController } from "./auth.controller.js";
 
 export const authRouter = Router();
 
+authRouter.post("/login", (req, res, next) => {
+  authController.login(req, res).catch(next);
+});
+
 authRouter.post("/otp/request", (req, res, next) => {
   authController.requestOtp(req, res).catch(next);
 });

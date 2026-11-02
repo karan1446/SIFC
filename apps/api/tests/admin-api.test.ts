@@ -61,7 +61,7 @@ describe("Phase 7: Admin API & RBAC Integration Suite", () => {
       expect(res.body.error.code).toBe("INVALID_CREDENTIALS");
     });
 
-    it("prompts for simulated 2FA on correct credentials without 2FA code (P7)", async () => {
+    it("successfully logs in directly on correct credentials without 2FA", async () => {
       const res = await request(app)
         .post("/api/v1/admin/auth/login")
         .send({
@@ -70,17 +70,17 @@ describe("Phase 7: Admin API & RBAC Integration Suite", () => {
         });
 
       expect(res.status).toBe(200);
-      expect(res.body.requires2FA).toBe(true);
-      expect(res.body.simulated2FACode).toBe("123456");
+      expect(res.body.accessToken).toBeDefined();
+      expect(res.body.admin.role).toBe("SUPER_ADMIN");
     });
 
-    it("rejects login with incorrect 2FA code", async () => {
+    it("rejects login with incorrect password", async () => {
       const res = await request(app)
         .post("/api/v1/admin/auth/login")
         .send({
           email: "superadmin@vai.local",
-          password: "SuperAdmin@123",
-          secondFactorCode: "999999"
+          password: "SuperAdmin@Wrong"
+
         });
 
       expect(res.status).toBe(401);

@@ -552,7 +552,7 @@ export function buildSeedProfiles(): SeedUserProfile[] {
           registrationNo: "DL01IJ4005",
           vehicleType: "FOUR_WHEELER",
           manufacturer: "Maruti Suzuki",
-          model: "Swift",
+          model: "Swift (2015 model)",
           registrationDate: new Date("2024-01-01T00:00:00.000Z"),
           insuranceExpiry: new Date("2026-09-01T00:00:00.000Z"), // expired 59d ago
           pucExpiry: new Date("2026-08-01T00:00:00.000Z"), // expired 90d ago
@@ -575,9 +575,9 @@ export function buildSeedProfiles(): SeedUserProfile[] {
           violationDesc: "Dangerous overspeeding",
           severity: "HIGH",
           amountPaise: 250000n,
-          status: "PAID",
-          dueDate: daysBeforeSeed(2),
-          paymentDate: daysBeforeSeed(1), // paid 1 day after due date (late)
+          status: "UNPAID",
+          dueDate: daysBeforeSeed(-15),
+          paymentDate: null,
           scoringEligible: true
         },
         {
@@ -589,9 +589,9 @@ export function buildSeedProfiles(): SeedUserProfile[] {
           violationDesc: "Dangerous overspeeding",
           severity: "HIGH",
           amountPaise: 250000n,
-          status: "PAID",
-          dueDate: daysBeforeSeed(40),
-          paymentDate: daysBeforeSeed(20), // paid 20 days after due date (late)
+          status: "UNPAID",
+          dueDate: daysBeforeSeed(-30),
+          paymentDate: null,
           scoringEligible: true
         }
       ]
@@ -614,7 +614,7 @@ export function buildSeedProfiles(): SeedUserProfile[] {
           registrationNo: "KL07KL5006",
           vehicleType: "TWO_WHEELER",
           manufacturer: "Hero",
-          model: "Splendor Plus",
+          model: "CD Deluxe (2012 model)",
           registrationDate: new Date("2024-01-01T00:00:00.000Z"),
           insuranceExpiry: new Date("2027-01-01T00:00:00.000Z"),
           pucExpiry: new Date("2027-01-01T00:00:00.000Z"),
@@ -1052,6 +1052,11 @@ export async function seedUsersAndChallans(profiles: SeedUserProfile[]): Promise
           vehicleType: v.vehicleType,
           manufacturer: v.manufacturer,
           model: v.model,
+          modelYear: v.model.includes("2012") ? 2012 : v.model.includes("2015") ? 2015 : v.registrationDate.getFullYear(),
+          engineNo: `ENG${v.registrationNo.replace(/[^A-Z0-9]/g, "")}${v.model.includes("2012") ? 2012 : 2015}`,
+          chassisNo: `CHS${v.registrationNo.replace(/[^A-Z0-9]/g, "")}X${v.model.includes("2012") ? 2012 : 2015}`,
+          fuelType: v.vehicleType === "TWO_WHEELER" ? "PETROL" : v.vehicleType === "COMMERCIAL" ? "DIESEL" : "PETROL",
+          color: v.vehicleType === "TWO_WHEELER" ? "Black & Red" : "Silky Silver",
           registrationDate: v.registrationDate,
           insuranceExpiry: v.insuranceExpiry,
           pucExpiry: v.pucExpiry,

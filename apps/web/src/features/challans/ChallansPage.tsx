@@ -68,7 +68,7 @@ export const ChallansPage: React.FC = () => {
     });
   };
 
-  const challans = data?.challans || [];
+  const challans: ChallanItem[] = data?.challans || (data as any)?.items || [];
 
   return (
     <div className="space-y-8">

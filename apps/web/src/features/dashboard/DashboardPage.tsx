@@ -91,7 +91,10 @@ export const DashboardPage: React.FC = () => {
   } = scoreData;
 
   const unpaidChallansCount =
-    (challanData?.challans || []).filter((c) => c.status === "UNPAID").length;
+    ((challanData as any)?.challans || (challanData as any)?.items || []).filter((c: any) => c.status === "UNPAID" || c.status === "PENDING").length;
+  const unpaidChallansTotalPaise = (((challanData as any)?.challans || (challanData as any)?.items || []) as any[])
+    .filter((c: any) => c.status === "UNPAID" || c.status === "PENDING")
+    .reduce((sum: number, c: any) => sum + (Number(c.amountPaise) || 0), 0);
   const vehicles = vehicleData?.vehicles || [];
   const fullyCompliantVehicles = vehicles.filter((v) => v.compliance?.fullyCompliant).length;
 
@@ -253,7 +256,9 @@ export const DashboardPage: React.FC = () => {
           </div>
           <div className="flex items-baseline gap-2">
             <span className="text-3xl font-black text-slate-900">{unpaidChallansCount}</span>
-            <span className="text-xs font-semibold text-slate-500">pending payment</span>
+            <span className="text-xs font-semibold text-slate-500">
+              pending payment{unpaidChallansTotalPaise > 0 ? ` (₹${(unpaidChallansTotalPaise / 100).toLocaleString("en-IN")})` : ""}
+            </span>
           </div>
           <span className="text-xs font-semibold text-teal-700 flex items-center gap-1">
             <span>Review challans & disputes</span>

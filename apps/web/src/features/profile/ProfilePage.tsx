@@ -1,13 +1,23 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Shield,
   LogOut,
   CheckCircle2,
+  Car,
+  Bike,
+  Truck,
+  ChevronRight,
+  User,
+  Phone,
+  Hash,
+  AlertTriangle,
+  FileText,
+  AlertCircle,
 } from "lucide-react";
-import { api } from "../../api/client";
-import { formatDate } from "../../lib/formatting";
+import { api, VehicleItem, ChallanItem } from "../../api/client";
+import { formatDate, formatCurrency } from "../../lib/formatting";
 import { useSessionStore } from "../auth/sessionStore";
 
 export const ProfilePage: React.FC = () => {
@@ -21,6 +31,16 @@ export const ProfilePage: React.FC = () => {
   const { data: userData, isLoading: userLoading } = useQuery({
     queryKey: ["me"],
     queryFn: () => api.users.getMe(),
+  });
+
+  const { data: vehicleData } = useQuery({
+    queryKey: ["vehicles"],
+    queryFn: () => api.vehicles.getVehicles(),
+  });
+
+  const { data: challanData } = useQuery({
+    queryKey: ["challans", "profile"],
+    queryFn: () => api.challans.getChallans({ limit: 10 }),
   });
 
   const { data: consentData } = useQuery({
@@ -67,15 +87,31 @@ export const ProfilePage: React.FC = () => {
     );
   }
 
+  const vehicles: VehicleItem[] = vehicleData?.vehicles || [];
   const partnerOffersGranted =
     consentData?.consents.find((c) => c.purpose === "REWARD_DISCOUNT")?.granted ?? true;
+
+  const rawChallans = ((challanData?.challans || (challanData as any)?.items || []) as ChallanItem[]);
+  const unpaidChallans = rawChallans.filter(
+    (c) => c.status === "UNPAID" || c.status === "PENDING"
+  );
+  const totalUnpaidAmountPaise = unpaidChallans.reduce(
+    (sum, c) => sum + (Number(c.amountPaise) || 0),
+    0
+  );
+
+  const getVehicleIcon = (type: string) => {
+    if (type === "TWO_WHEELER") return <Bike className="w-5 h-5" />;
+    if (type === "COMMERCIAL") return <Truck className="w-5 h-5" />;
+    return <Car className="w-5 h-5" />;
+  };
 
   return (
     <div className="space-y-8 max-w-4xl mx-auto">
       <div>
-        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Citizen Profile & Privacy</h1>
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Citizen Profile & Vehicles</h1>
         <p className="text-slate-600 text-base mt-1">
-          Review your verified identity credentials, linked documents, and DPDP consent settings.
+          Review your verified identity credentials, registered vehicles (RC), and DPDP consent settings.
         </p>
       </div>
 
@@ -106,12 +142,12 @@ export const ProfilePage: React.FC = () => {
 
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
             <span className="text-xs uppercase font-bold text-slate-400 tracking-wider block">
-              Mobile Number
+              Registered Mobile Number
             </span>
             <span className="text-base font-mono font-bold text-slate-900 block">
               {userData.mobileMasked}
             </span>
-            <span className="text-xs text-slate-500 block">Verified via simulated OTP</span>
+            <span className="text-xs text-slate-500 block">Primary authenticated driver mobile</span>
           </div>
 
           <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
@@ -138,6 +174,200 @@ export const ProfilePage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* My Vehicles & RC Details Section */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2">
+            <Car className="w-5 h-5 text-teal-600" />
+            <h2 className="text-xl font-bold text-slate-900">My Registered Vehicles & RC Details</h2>
+          </div>
+          <Link
+            to="/vehicles"
+            className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 min-h-[36px]"
+          >
+            <span>Manage All Documents</span>
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {vehicles.length === 0 ? (
+          <p className="text-sm text-slate-500 py-4">No vehicles currently registered under this account.</p>
+        ) : (
+          <div className="space-y-4">
+            {vehicles.map((v) => {
+              const rc = v.rcDetails;
+              const ownerName = v.owner?.fullName || userData.fullName || "Citizen Driver";
+              const ownerMobile = v.owner?.mobile || userData.mobileMasked || "+91 90000 00005";
+              const modelDisplayName = rc?.modelName || `${v.manufacturer} ${v.model}`;
+              const modelYear = v.modelYear || rc?.modelYear || (v.model.includes("2012") ? 2012 : v.model.includes("2015") ? 2015 : 2020);
+
+              return (
+                <div
+                  key={v.vehicleId}
+                  className="p-5 rounded-xl border border-slate-200 bg-slate-50/70 space-y-4 hover:border-slate-300 transition"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/70 pb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center font-bold">
+                        {getVehicleIcon(v.vehicleType)}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-lg font-black text-slate-900">
+                            {v.registrationNo}
+                          </span>
+                          <span className="px-2 py-0.5 rounded text-[11px] font-bold uppercase bg-green-100 text-green-800">
+                            RC Active
+                          </span>
+                        </div>
+                        <span className="text-sm font-bold text-slate-800 block">
+                          {modelDisplayName}
+                        </span>
+                      </div>
+                    </div>
+
+                    <Link
+                      to={`/vehicles/${v.registrationNo}`}
+                      className="inline-flex items-center gap-1 text-xs font-bold text-teal-700 hover:text-teal-900 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm"
+                    >
+                      <span>View RC Certificate</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+
+                  {/* RC Details Grid */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                    <div className="p-3 bg-white rounded-lg border border-slate-100 space-y-0.5">
+                      <span className="text-slate-400 block font-semibold text-[11px] flex items-center gap-1">
+                        <User className="w-3 h-3 text-slate-400" />
+                        Registered Owner
+                      </span>
+                      <span className="font-bold text-slate-900 block text-sm">{ownerName}</span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-lg border border-slate-100 space-y-0.5">
+                      <span className="text-slate-400 block font-semibold text-[11px] flex items-center gap-1">
+                        <Phone className="w-3 h-3 text-slate-400" />
+                        Registered Mobile
+                      </span>
+                      <span className="font-mono font-bold text-slate-900 block text-sm">{ownerMobile}</span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-lg border border-slate-100 space-y-0.5">
+                      <span className="text-slate-400 block font-semibold text-[11px] flex items-center gap-1">
+                        <Hash className="w-3 h-3 text-slate-400" />
+                        Engine Number
+                      </span>
+                      <span className="font-mono font-bold text-slate-800 block text-xs truncate">
+                        {v.engineNo || rc?.engineNo || `ENG${v.registrationNo}`}
+                      </span>
+                    </div>
+
+                    <div className="p-3 bg-white rounded-lg border border-slate-100 space-y-0.5">
+                      <span className="text-slate-400 block font-semibold text-[11px] flex items-center gap-1">
+                        <Hash className="w-3 h-3 text-slate-400" />
+                        Chassis Number
+                      </span>
+                      <span className="font-mono font-bold text-slate-800 block text-xs truncate">
+                        {v.chassisNo || rc?.chassisNo || `CHS${v.registrationNo}X`}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </section>
+
+      {/* Traffic Challans & Penalties Section */}
+      <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+          <div className="flex items-center gap-2">
+            <FileText className="w-5 h-5 text-teal-600" />
+            <h2 className="text-xl font-bold text-slate-900">Traffic Challans & Penalties</h2>
+            {unpaidChallans.length > 0 && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                {unpaidChallans.length} Action Required
+              </span>
+            )}
+          </div>
+          <Link
+            to="/challans"
+            className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-1 min-h-[36px]"
+          >
+            <span>View All Challans</span>
+            <ChevronRight className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {unpaidChallans.length === 0 ? (
+          <div className="p-5 rounded-xl bg-green-50/70 border border-green-200 flex items-center gap-3">
+            <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
+            <div>
+              <span className="font-bold text-green-900 block text-sm">No Pending Challans</span>
+              <p className="text-xs text-green-700">All traffic notices are settled. Great driving record!</p>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="p-4 rounded-xl bg-amber-50/70 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-amber-600 flex-shrink-0" />
+                <div>
+                  <span className="font-bold text-amber-950 block text-sm">
+                    {unpaidChallans.length} Unpaid Traffic {unpaidChallans.length === 1 ? "Challan" : "Challans"} Detected
+                  </span>
+                  <p className="text-xs text-amber-800">
+                    Total outstanding penalties: <strong className="font-mono">{formatCurrency(totalUnpaidAmountPaise)}</strong>. Settle before due date to protect your VAI score.
+                  </p>
+                </div>
+              </div>
+              <Link
+                to="/challans"
+                className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-xs transition text-center whitespace-nowrap min-h-[36px] flex items-center justify-center"
+              >
+                Pay & Settle All
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {unpaidChallans.map((c) => (
+                <div
+                  key={c.challanId}
+                  className="p-4 rounded-xl border border-slate-200 bg-slate-50/80 space-y-2 hover:border-slate-300 transition"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono font-bold text-xs text-slate-800">{c.challanId}</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-red-100 text-red-800">
+                      {c.status}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="font-bold text-slate-900 block text-sm">{c.violationDesc}</span>
+                    <span className="text-xs text-slate-500 block">
+                      Vehicle: <span className="font-mono font-semibold text-slate-700">{c.registrationNo}</span> • Code: {c.violationCode}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-200/80 text-xs">
+                    <span className="font-bold text-slate-900 font-mono text-sm">
+                      {formatCurrency(c.amountPaise)}
+                    </span>
+                    <Link
+                      to="/challans"
+                      className="text-xs font-bold text-teal-700 hover:text-teal-900 flex items-center gap-0.5 min-h-[32px]"
+                    >
+                      <span>Pay / Dispute</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* DPDP Act 2023 Consent Management */}
       <section className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">

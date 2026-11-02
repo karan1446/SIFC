@@ -72,7 +72,7 @@ export const App: React.FC = () => {
             <Route path="disputes" element={<AdminDisputesPage />} />
             <Route path="citizens" element={<AdminCitizensPage />} />
             <Route path="transactions" element={<AdminTransactionsPage />} />
-            <Route path="governance" element={<AdminGovernancePage />} />
+            <Route path="governance" element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="audit" element={<AdminAuditPage />} />
             <Route path="system" element={<AdminSystemPage />} />
           </Route>

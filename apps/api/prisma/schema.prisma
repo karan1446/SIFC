@@ -44,6 +44,11 @@ model Vehicle {
   vehicleType      String    @map("vehicle_type") // TWO_WHEELER, FOUR_WHEELER, COMMERCIAL
   manufacturer     String
   model            String
+  modelYear        Int?      @map("model_year")
+  engineNo         String?   @map("engine_no")
+  chassisNo        String?   @map("chassis_no")
+  fuelType         String?   @map("fuel_type")
+  color            String?
   registrationDate DateTime  @map("registration_date")
   insuranceExpiry  DateTime? @map("insurance_expiry")
   pucExpiry        DateTime? @map("puc_expiry")

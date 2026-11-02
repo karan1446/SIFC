@@ -34,18 +34,7 @@ export class AdminService {
       throw new AppError(401, "INVALID_CREDENTIALS", "Invalid email or password");
     }
 
-    // Spec Patch P7: Simulated 6-digit second factor shown on dummy banner
-    if (!input.secondFactorCode) {
-      return {
-        requires2FA: true,
-        simulated2FACode: "123456",
-        message: "Enter simulated 6-digit second factor code to complete sign-in"
-      };
-    }
-
-    if (input.secondFactorCode !== "123456") {
-      throw new AppError(401, "INVALID_CREDENTIALS", "Invalid second factor code");
-    }
+    // Direct login without OTP / 2FA
 
     const accessToken = tokenService.generateAccessToken({
       userId: admin.adminId,

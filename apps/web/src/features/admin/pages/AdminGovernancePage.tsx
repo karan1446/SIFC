@@ -56,7 +56,7 @@ export const AdminGovernancePage: React.FC = () => {
           Statutory Governance & Policy Management
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          Configure national platform fee models (P8), discount schedules, and scoring parameters.
+          Configure discount schedules, scoring parameters, and statutory policies.
         </p>
       </div>
 
@@ -79,7 +79,7 @@ export const AdminGovernancePage: React.FC = () => {
         <div className="flex items-center justify-between">
           <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
             <Percent className="w-5 h-5 text-indigo-600" />
-            <span>Platform Fee Policy (PRD 8.2 & Spec Patch P8)</span>
+            <span>Platform Fee Policy</span>
           </h2>
           <span className="text-xs bg-slate-100 text-slate-700 px-2.5 py-1 rounded font-semibold">
             Separately Stated Fee
@@ -179,7 +179,7 @@ export const AdminGovernancePage: React.FC = () => {
       <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
         <h2 className="text-base font-bold text-slate-900 flex items-center space-x-2">
           <Layers className="w-5 h-5 text-indigo-600" />
-          <span>Statutory Reward Discount Schedule (PRD 8.1)</span>
+          <span>Statutory Reward Discount Schedule</span>
         </h2>
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs">

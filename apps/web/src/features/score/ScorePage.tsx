@@ -42,7 +42,7 @@ export const ScorePage: React.FC = () => {
   const score = scoreData?.score ?? 700;
   const category = scoreData?.category ?? "GOOD";
   const nextMilestone = scoreData?.nextMilestone ?? null;
-  const history = (historyData as any)?.history || (historyData as any)?.snapshots || [];
+  const history: Array<{ score: number; period: string }> = (historyData as any)?.history || (historyData as any)?.snapshots || [];
   const ledger = ledgerData?.ledger || [];
 
   return (
