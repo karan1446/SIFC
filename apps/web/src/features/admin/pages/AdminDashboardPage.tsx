@@ -110,7 +110,7 @@ export const AdminDashboardPage: React.FC = () => {
             ₹{(platformFeePaise / 100).toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
           <div className="mt-1 text-xs text-slate-500">
-            Separately billed per PRD 8.2 & Spec Patch P8
+            Statutory partner fee • Separately stated
           </div>
         </div>
       </div>
@@ -122,7 +122,7 @@ export const AdminDashboardPage: React.FC = () => {
           <span>VAI Score Tier Distribution (Population Cohort)</span>
         </h2>
         <p className="text-xs text-slate-500 mt-1">
-          Scoring bands per PRD 7.1: Fair (&lt;650), Good (650–749), Very Good (750–900).
+          Scoring tier criteria: Fair (&lt;650), Good (650–749), Very Good (750–900).
         </p>
 
         <div className="mt-6 space-y-4">

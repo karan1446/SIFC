@@ -72,11 +72,24 @@ export function createApp(): Express {
   });
   app.use(generalLimiter);
 
+  // Disable ETags to prevent stale 304 caching across user sessions
+  app.set("etag", false);
+
   // Health and readiness routes
   app.use(healthRouter);
 
-  // VAI API v1 routes
-  app.use("/api/v1", apiV1Router);
+  // VAI API v1 routes with strict no-cache headers for dynamic user data
+  app.use(
+    "/api/v1",
+    (_req, res, next) => {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+      res.setHeader("Surrogate-Control", "no-store");
+      next();
+    },
+    apiV1Router
+  );
 
   // Root welcome route
   app.get("/", (_req, res) => {

@@ -33,7 +33,7 @@ export class ChallansController {
     if (Object.keys(dateFilter).length > 0) {
       where.challanDate = dateFilter;
     }
-
+    console.log("[DEBUG] listUserChallans for userId:", userId, "where:", JSON.stringify(where));
     const [totalCount, items] = await Promise.all([
       prisma.challan.count({ where }),
       prisma.challan.findMany({

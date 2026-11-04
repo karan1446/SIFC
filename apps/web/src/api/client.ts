@@ -33,7 +33,12 @@ async function request<T>(
 
   const response = await fetch(`${BASE_URL}${path}`, {
     ...options,
-    headers,
+    cache: "no-store",
+    headers: {
+      ...headers,
+      "Cache-Control": "no-cache",
+      "Pragma": "no-cache",
+    },
     credentials: "include", // for HttpOnly refresh cookie
   });
 
@@ -243,7 +248,9 @@ export const api = {
       if (params?.cursor) q.append("cursor", params.cursor);
       return request<{
         challans: Array<ChallanItem>;
+        items?: Array<ChallanItem>;
         pagination: { nextCursor: string | null; hasMore: boolean };
+        totalCount?: number;
       }>(`/users/me/challans?${q.toString()}`);
     },
     disputeChallan: (challanId: string, reason: string) =>

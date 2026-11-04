@@ -41,6 +41,8 @@ export const ProfilePage: React.FC = () => {
   const { data: challanData } = useQuery({
     queryKey: ["challans", "profile"],
     queryFn: () => api.challans.getChallans({ limit: 10 }),
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const { data: consentData } = useQuery({

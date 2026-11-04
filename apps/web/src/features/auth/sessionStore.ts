@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { queryClient } from "../../lib/queryClient";
 
 export interface UserSummary {
   userId: string;
@@ -82,6 +83,7 @@ export const useSessionStore = create<SessionState>((set) => ({
       localStorage.removeItem("vai_citizen_token");
       localStorage.removeItem("vai_citizen_user");
     } catch {}
+    queryClient.clear();
     set({ accessToken: null, user: null, pendingOtp: null, simulatedOtpBanner: null });
   },
 }));

@@ -14,7 +14,7 @@
     "db:seed": "npm --workspace=@vai/api run db:seed",
     "dev:api": "npm --workspace=@vai/api run dev",
     "dev:web": "npm --workspace=@vai/web run dev",
-    "dev": "node -e \"const { spawn } = require('child_process'); spawn('npm', ['--workspace=@vai/api', 'run', 'dev'], { stdio: 'inherit', shell: true }); spawn('npm', ['--workspace=@vai/web', 'run', 'dev'], { stdio: 'inherit', shell: true });\"",
+    "dev": "node -e \"const { spawn } = require('child_process'); const cmd = process.platform === 'win32' ? 'npm.cmd' : 'npm'; spawn(cmd, ['--workspace=@vai/api', 'run', 'dev'], { stdio: 'inherit', shell: true }); spawn(cmd, ['--workspace=@vai/web', 'run', 'dev'], { stdio: 'inherit', shell: true });\"",
     "build:web": "npm --workspace=@vai/web run build",
     "api:walkthrough": "npm --workspace=@vai/api run api:walkthrough",
     "test": "vitest run --no-file-parallelism",

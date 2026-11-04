@@ -68,7 +68,10 @@ export const ChallansPage: React.FC = () => {
     });
   };
 
-  const challans: ChallanItem[] = data?.challans || (data as any)?.items || [];
+  const challans: ChallanItem[] =
+    (Array.isArray(data?.challans) && data.challans.length > 0)
+      ? data.challans
+      : (Array.isArray((data as any)?.items) ? (data as any).items : (data?.challans || []));
 
   return (
     <div className="space-y-8">

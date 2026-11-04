@@ -43,7 +43,7 @@ export const AdminSystemPage: React.FC = () => {
           System Maintenance & Dataset Controls
         </h1>
         <p className="text-sm text-slate-500 mt-1">
-          TRD 18 & FR-M5 safety-guarded database reset with prototype dummy data enforcement.
+          Safety-guarded database reset with standard reference data.
         </p>
       </div>
 

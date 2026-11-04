@@ -4,6 +4,7 @@ import { Shield, ArrowRight, AlertCircle } from "lucide-react";
 import { DummyBanner } from "../../components/DummyBanner";
 import { api, ApiError } from "../../api/client";
 import { useSessionStore } from "./sessionStore";
+import { queryClient } from "../../lib/queryClient";
 
 export const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -45,6 +46,7 @@ export const LoginPage: React.FC = () => {
       const res = await api.auth.login(cleanMobile, cleanPan);
 
       // Store credentials and user
+      queryClient.clear();
       setAccessToken(res.accessToken);
       setUser(res.user);
 

@@ -50,7 +50,15 @@ export class AdminController {
   async getUserDetail(req: Request, res: Response): Promise<void> {
     const userId = req.params.userId;
     const user = await adminService.getUserDetail(userId);
-    res.status(200).json(user);
+    const vaiScoreObj = user.score !== null ? { score: user.score, category: user.category ?? "FAIR" } : null;
+    res.status(200).json({
+      ...user,
+      vaiScore: vaiScoreObj,
+      user: {
+        ...user,
+        vaiScore: vaiScoreObj
+      }
+    });
   }
 
   /**

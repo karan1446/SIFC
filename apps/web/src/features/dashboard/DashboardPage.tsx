@@ -25,7 +25,8 @@ export const DashboardPage: React.FC = () => {
   } = useQuery({
     queryKey: ["score"],
     queryFn: () => api.score.getScore(),
-    staleTime: 60000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const { data: vehicleData } = useQuery({
@@ -37,7 +38,8 @@ export const DashboardPage: React.FC = () => {
   const { data: challanData } = useQuery({
     queryKey: ["challans", "recent"],
     queryFn: () => api.challans.getChallans({ limit: 10 }),
-    staleTime: 60000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   if (scoreLoading) {

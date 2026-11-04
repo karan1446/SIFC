@@ -30,14 +30,7 @@ import { AdminGovernancePage } from "../features/admin/pages/AdminGovernancePage
 import { AdminAuditPage } from "../features/admin/pages/AdminAuditPage";
 import { AdminSystemPage } from "../features/admin/pages/AdminSystemPage";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-});
+import { queryClient } from "../lib/queryClient";
 
 export const App: React.FC = () => {
   return (

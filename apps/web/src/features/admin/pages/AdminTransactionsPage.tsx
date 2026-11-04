@@ -79,7 +79,7 @@ export const AdminTransactionsPage: React.FC = () => {
             Transactions & Refunds Management
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Financial reconciliation with proportional platform fee clawbacks (Spec Patch P7).
+            Financial reconciliation with proportional platform fee adjustments.
           </p>
         </div>
       </div>
@@ -104,7 +104,6 @@ export const AdminTransactionsPage: React.FC = () => {
                   <th className="py-3 px-4">Citizen Paid</th>
                   <th className="py-3 px-4">Platform Fee</th>
                   <th className="py-3 px-4">Status</th>
-                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -151,23 +150,6 @@ export const AdminTransactionsPage: React.FC = () => {
                         {t.status}
                       </span>
                     </td>
-                    <td className="py-3 px-4 text-right">
-                      {t.status === "SUCCESS" && isSuperAdmin ? (
-                        <button
-                          onClick={() => setSelectedTxn(t.txnId)}
-                          className="inline-flex items-center space-x-1 text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 border border-purple-200 px-2 py-1 rounded text-[11px] font-medium transition"
-                        >
-                          <RotateCcw className="w-3 h-3" />
-                          <span>Refund</span>
-                        </button>
-                      ) : t.refunds.length > 0 ? (
-                        <span className="text-[10px] text-purple-700 font-medium">
-                          Refunded (₹{(t.refunds.reduce((acc, r) => acc + r.amountPaise, 0) / 100).toFixed(2)})
-                        </span>
-                      ) : (
-                        <span className="text-slate-400 text-[10px]">—</span>
-                      )}
-                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -188,7 +170,7 @@ export const AdminTransactionsPage: React.FC = () => {
             </div>
 
             <p className="text-xs text-slate-600 mb-4">
-              Refunding transaction <code className="bg-slate-100 px-1 py-0.5 rounded">{selectedTxn}</code>. Per Spec Patch P7, platform fees will be automatically reversed in exact proportion to the refund amount.
+              Refunding transaction <code className="bg-slate-100 px-1 py-0.5 rounded">{selectedTxn}</code>. Platform fees will be automatically reversed in exact proportion to the refund amount.
             </p>
 
             {refundError && (

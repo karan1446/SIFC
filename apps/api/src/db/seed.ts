@@ -2,7 +2,7 @@ import { hash } from "@node-rs/argon2";
 import crypto from "node:crypto";
 import { prisma } from "./client.js";
 import { encryptPan, hashPan } from "../lib/crypto.js";
-import { maskPan, maskLicence } from "@vai/shared";
+import { maskPan, maskLicence, calculateDiscountPaise, calculatePlatformFeePaise } from "@vai/shared";
 import { DEFAULT_SCORING_CONFIG_V1 } from "../modules/scoring/config.js";
 import { scoringService } from "../modules/scoring/service.js";
 import { logger } from "../lib/logger.js";
@@ -1190,6 +1190,437 @@ export async function computeFinalSeedScores(
 /**
  * TRD 18.3 Referential Integrity and Invariant Validation.
  */
+
+export async function seedTransactions(): Promise<void> {
+  const transactionsData = [
+    // U001 (Priya Sharma - Score 765 VERY_GOOD - 200 bps discount)
+    {
+      txnId: "TXN-20260910-101001",
+      userId: "U001",
+      vehicleId: "VEH-U001-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "VERY_GOOD",
+      baseAmountPaise: 320000n, // ₹3,200
+      discountBps: 200,
+      status: "SUCCESS",
+      paymentRef: "UPI/AXIS/918237192841/SUCCESS",
+      createdAt: daysBeforeSeed(50)
+    },
+    {
+      txnId: "TXN-20260925-101002",
+      userId: "U001",
+      vehicleId: "VEH-U001-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "VERY_GOOD",
+      baseAmountPaise: 15000n, // ₹150
+      discountBps: 200,
+      status: "SUCCESS",
+      paymentRef: "UPI/GPAY/827102948291/SUCCESS",
+      createdAt: daysBeforeSeed(35)
+    },
+
+    // U002 (Vikram Malhotra - Score 742 GOOD - 100 bps discount)
+    {
+      txnId: "TXN-20260714-102001",
+      userId: "U002",
+      vehicleId: "VEH-U002-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 1850000n, // ₹18,500
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "HDFC-NB-728192038471",
+      createdAt: daysBeforeSeed(108)
+    },
+    {
+      txnId: "TXN-20260820-102002",
+      userId: "U002",
+      vehicleId: "VEH-U002-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 25000n, // ₹250
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "UPI/PAYTM/628192019482/SUCCESS",
+      createdAt: daysBeforeSeed(71)
+    },
+    {
+      txnId: "TXN-20261012-102003",
+      userId: "U002",
+      vehicleId: "VEH-U002-01",
+      licenceId: null,
+      providerId: "PROV-PARI-001",
+      serviceType: "RC",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 120000n, // ₹1,200
+      discountBps: 100,
+      status: "REFUNDED",
+      paymentRef: "ICICI-NET-8273619201",
+      createdAt: daysBeforeSeed(18)
+    },
+
+    // U003 (Amit Patel - Score 591 FAIR - 0 bps discount)
+    {
+      txnId: "TXN-20260810-103001",
+      userId: "U003",
+      vehicleId: "VEH-U003-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 1600000n, // ₹16,000
+      discountBps: 0,
+      status: "SUCCESS",
+      paymentRef: "SBI-NET-918273645120",
+      createdAt: daysBeforeSeed(81)
+    },
+    {
+      txnId: "TXN-20260905-103002",
+      userId: "U003",
+      vehicleId: "VEH-U003-02",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 15000n, // ₹150
+      discountBps: 0,
+      status: "SUCCESS",
+      paymentRef: "UPI/PHONEPE/552719283712/SUCCESS",
+      createdAt: daysBeforeSeed(55)
+    },
+    {
+      txnId: "TXN-20261028-103003",
+      userId: "U003",
+      vehicleId: "VEH-U003-02",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 280000n, // ₹2,800
+      discountBps: 0,
+      status: "FAILED",
+      paymentRef: "UPI/FAILED/BANK_TIMED_OUT",
+      createdAt: daysBeforeSeed(2)
+    },
+
+    // U004 (Rajesh Kumar - Score 634 FAIR - 0 bps discount)
+    {
+      txnId: "TXN-20260515-104001",
+      userId: "U004",
+      vehicleId: "VEH-U004-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 950000n, // ₹9,500
+      discountBps: 0,
+      status: "SUCCESS",
+      paymentRef: "PNB-NET-443819283710",
+      createdAt: daysBeforeSeed(168)
+    },
+    {
+      txnId: "TXN-20260610-104002",
+      userId: "U004",
+      vehicleId: "VEH-U004-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 20000n, // ₹200
+      discountBps: 0,
+      status: "SUCCESS",
+      paymentRef: "UPI/BHIM/991827364521/SUCCESS",
+      createdAt: daysBeforeSeed(142)
+    },
+    {
+      txnId: "TXN-20261029-104003",
+      userId: "U004",
+      vehicleId: "VEH-U004-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 25000n, // ₹250
+      discountBps: 0,
+      status: "PAYMENT_PENDING",
+      paymentRef: "GATEWAY-INIT-928172635",
+      createdAt: daysBeforeSeed(1)
+    },
+
+    // U005 (Suresh Nair - Score 630 FAIR - 0 bps discount)
+    {
+      txnId: "TXN-20260601-105001",
+      userId: "U005",
+      vehicleId: "VEH-U005-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 240000n, // ₹2,400
+      discountBps: 0,
+      status: "SUCCESS",
+      paymentRef: "FED-NET-883719283741",
+      createdAt: daysBeforeSeed(151)
+    },
+    {
+      txnId: "TXN-20260812-105002",
+      userId: "U005",
+      vehicleId: "VEH-U005-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "FAIR",
+      baseAmountPaise: 12000n, // ₹120
+      discountBps: 0,
+      status: "SUCCESS",
+      paymentRef: "UPI/GPAY/119283746582/SUCCESS",
+      createdAt: daysBeforeSeed(79)
+    },
+
+    // U006 (Deepa Srinivasan - Score 765 VERY_GOOD - 200 bps discount)
+    {
+      txnId: "TXN-20260410-106001",
+      userId: "U006",
+      vehicleId: "VEH-U006-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "VERY_GOOD",
+      baseAmountPaise: 2200000n, // ₹22,000
+      discountBps: 200,
+      status: "SUCCESS",
+      paymentRef: "AXIS-NET-338291048291",
+      createdAt: daysBeforeSeed(203)
+    },
+    {
+      txnId: "TXN-20260718-106002",
+      userId: "U006",
+      vehicleId: "VEH-U006-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "VERY_GOOD",
+      baseAmountPaise: 25000n, // ₹250
+      discountBps: 200,
+      status: "SUCCESS",
+      paymentRef: "UPI/ICICI/449182736152/SUCCESS",
+      createdAt: daysBeforeSeed(104)
+    },
+    {
+      txnId: "TXN-20260901-106003",
+      userId: "U006",
+      vehicleId: null,
+      licenceId: "LIC-U006-01",
+      providerId: "PROV-PARI-002",
+      serviceType: "LICENCE",
+      vaiCategoryAtTxn: "VERY_GOOD",
+      baseAmountPaise: 50000n, // ₹500
+      discountBps: 200,
+      status: "SUCCESS",
+      paymentRef: "UPI/GPAY/992817263541/SUCCESS",
+      createdAt: daysBeforeSeed(59)
+    },
+
+    // U007 (Rahul Singh - Score 726 GOOD - 100 bps discount)
+    {
+      txnId: "TXN-20260315-107001",
+      userId: "U007",
+      vehicleId: "VEH-U007-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 2800000n, // ₹28,000
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "KOTAK-NET-118273645192",
+      createdAt: daysBeforeSeed(229)
+    },
+    {
+      txnId: "TXN-20260520-107002",
+      userId: "U007",
+      vehicleId: "VEH-U007-02",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 3100000n, // ₹31,000
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "KOTAK-NET-229384756102",
+      createdAt: daysBeforeSeed(163)
+    },
+    {
+      txnId: "TXN-20260814-107003",
+      userId: "U007",
+      vehicleId: "VEH-U007-03",
+      licenceId: null,
+      providerId: "PROV-PARI-001",
+      serviceType: "RC",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 350000n, // ₹3,500
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "UPI/PAYTM/772819203948/SUCCESS",
+      createdAt: daysBeforeSeed(77)
+    },
+
+    // U008 (Ananya Iyer - Score 715 GOOD - 100 bps discount)
+    {
+      txnId: "TXN-20261028-108001",
+      userId: "U008",
+      vehicleId: "VEH-U008-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 450000n, // ₹4,500
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "UPI/GPAY/338291048271/SUCCESS",
+      createdAt: daysBeforeSeed(2)
+    },
+    {
+      txnId: "TXN-20261028-108002",
+      userId: "U008",
+      vehicleId: "VEH-U008-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 15000n, // ₹150
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "UPI/GPAY/338291048272/SUCCESS",
+      createdAt: daysBeforeSeed(2)
+    },
+
+    // U009 (Manoj Verma - Score 669 GOOD - 100 bps discount)
+    {
+      txnId: "TXN-20260401-109001",
+      userId: "U009",
+      vehicleId: "VEH-U009-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 2400000n, // ₹24,000
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "BOB-NET-991827364512",
+      createdAt: daysBeforeSeed(212)
+    },
+    {
+      txnId: "TXN-20260510-109002",
+      userId: "U009",
+      vehicleId: "VEH-U009-02",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 12000n, // ₹120
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "UPI/PHONEPE/661829304918/SUCCESS",
+      createdAt: daysBeforeSeed(173)
+    },
+
+    // U010 (Anita Desai - Score 725 GOOD - 100 bps discount)
+    {
+      txnId: "TXN-20260918-110001",
+      userId: "U010",
+      vehicleId: "VEH-U010-01",
+      licenceId: null,
+      providerId: "PROV-HDFC-001",
+      serviceType: "INSURANCE",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 1400000n, // ₹14,000
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "UPI/PAYTM/881920394857/SUCCESS",
+      createdAt: daysBeforeSeed(42)
+    },
+    {
+      txnId: "TXN-20260920-110002",
+      userId: "U010",
+      vehicleId: "VEH-U010-01",
+      licenceId: null,
+      providerId: "PROV-CLEAN-001",
+      serviceType: "PUC",
+      vaiCategoryAtTxn: "GOOD",
+      baseAmountPaise: 20000n, // ₹200
+      discountBps: 100,
+      status: "SUCCESS",
+      paymentRef: "UPI/GPAY/554819203948/SUCCESS",
+      createdAt: daysBeforeSeed(40)
+    }
+  ];
+
+  for (const t of transactionsData) {
+    const discountPaise = calculateDiscountPaise(t.baseAmountPaise, t.discountBps);
+    const govtFundedPaise = discountPaise;
+    const payablePaise = t.baseAmountPaise - discountPaise;
+    const platformFeePpm = 50;
+    const platformFeePaise = calculatePlatformFeePaise(t.baseAmountPaise, platformFeePpm);
+    const feeMode = "PROVIDER_PAYS";
+    const userTotalPaise = payablePaise;
+    const settlementToProviderPaise = payablePaise - platformFeePaise;
+
+    await prisma.transaction.create({
+      data: {
+        txnId: t.txnId,
+        userId: t.userId,
+        vehicleId: t.vehicleId,
+        licenceId: t.licenceId,
+        providerId: t.providerId,
+        serviceType: t.serviceType,
+        vaiCategoryAtTxn: t.vaiCategoryAtTxn,
+        baseAmountPaise: t.baseAmountPaise,
+        discountBps: t.discountBps,
+        discountPaise,
+        govtFundedPaise,
+        payablePaise,
+        platformFeePpm,
+        platformFeePaise,
+        feeMode,
+        userTotalPaise,
+        settlementToProviderPaise,
+        status: t.status,
+        paymentRef: t.paymentRef,
+        idempotencyKey: `idemp-seed-${t.txnId.toLowerCase()}`,
+        quoteId: `Q-SEED-${t.txnId.slice(-6)}`,
+        receiptUrl: t.status === "SUCCESS" || t.status === "REFUNDED" ? `/api/v1/transactions/${t.txnId}/receipt` : null,
+        createdAt: t.createdAt,
+        updatedAt: t.createdAt
+      }
+    });
+
+    // If REFUNDED, record corresponding Refund row
+    if (t.status === "REFUNDED") {
+      await prisma.refund.create({
+        data: {
+          refundId: `REF-${t.txnId}`,
+          txnId: t.txnId,
+          amountPaise: payablePaise,
+          feeReversedPaise: platformFeePaise,
+          reasonCode: "SERVICE_CANCELLATION",
+          adminId: "admin-superadmin",
+          createdAt: daysBeforeSeed(10)
+        }
+      });
+    }
+  }
+}
+
+
 export async function validateReferentialIntegrity(): Promise<{ valid: boolean; errors: string[] }> {
   const errors: string[] = [];
 
@@ -1269,6 +1700,9 @@ export async function seed(): Promise<void> {
 
   const scoreResults = await computeFinalSeedScores(profiles);
   logger.info("Final seed scores computed and ledger generated.");
+
+  await seedTransactions();
+  logger.info("25 realistic dummy transactions and invoices seeded across all 10 profiles.");
 
   const validation = await validateReferentialIntegrity();
   if (!validation.valid) {

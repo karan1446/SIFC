@@ -55,14 +55,23 @@ export class TransactionsController {
         txnId: t.txnId,
         serviceType: t.serviceType,
         vaiCategory: t.vaiCategoryAtTxn,
+        vaiCategoryAtTxn: t.vaiCategoryAtTxn,
         baseAmountPaise: Number(t.baseAmountPaise),
+        discountBps: t.discountBps,
         discountPaise: Number(t.discountPaise),
+        govtFundedPaise: Number(t.govtFundedPaise),
         payablePaise: Number(t.payablePaise),
+        platformFeePpm: t.platformFeePpm,
         platformFeePaise: Number(t.platformFeePaise),
         status: t.status,
+        paymentRef: t.paymentRef,
         receiptUrl: t.receiptUrl,
         createdAt: t.createdAt.toISOString()
-      }))
+      })),
+      pagination: {
+        nextCursor: null,
+        hasMore: false
+      }
     });
   }
 

@@ -11,7 +11,8 @@ export const TransactionsPage: React.FC = () => {
   const { data, isLoading } = useQuery({
     queryKey: ["transactions", cursor],
     queryFn: () => api.transactions.getTransactions({ cursor, limit: 15 }),
-    staleTime: 60000,
+    staleTime: 0,
+    refetchOnMount: "always",
   });
 
   const transactions = data?.transactions || [];
@@ -73,14 +74,14 @@ export const TransactionsPage: React.FC = () => {
                       <td className="px-5 py-4 whitespace-nowrap">
                         <span
                           className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
-                            t.vaiCategoryAtTxn === "VERY_GOOD"
+                            (t.vaiCategoryAtTxn || (t as any).vaiCategory) === "VERY_GOOD"
                               ? "bg-green-100 text-green-800"
-                              : t.vaiCategoryAtTxn === "GOOD"
+                              : (t.vaiCategoryAtTxn || (t as any).vaiCategory) === "GOOD"
                               ? "bg-teal-100 text-teal-800"
                               : "bg-amber-100 text-amber-800"
                           }`}
                         >
-                          {t.vaiCategoryAtTxn.replace("_", " ")}
+                          {(t.vaiCategoryAtTxn || (t as any).vaiCategory || "FAIR").replace("_", " ")}
                         </span>
                       </td>
 
@@ -178,7 +179,7 @@ export const TransactionsPage: React.FC = () => {
             </div>
 
             {/* Pagination Controls */}
-            {data?.pagination.hasMore && (
+            {data?.pagination?.hasMore && (
               <div className="p-4 border-t border-slate-100 flex justify-end">
                 <button
                   onClick={() => setCursor(data.pagination.nextCursor || undefined)}

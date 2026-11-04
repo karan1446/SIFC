@@ -17,7 +17,12 @@ export interface DeterministicReceiptData {
   receiptNumber: string;
   transactionId: string;
   timestamp: string; // ISO from transaction.createdAt (deterministic)
+  issuedAt?: string;
   serviceType: string;
+  service?: {
+    serviceType: string;
+    description: string;
+  };
   vaiCategory: string;
   citizen: {
     fullName: string;
@@ -53,9 +58,20 @@ export interface DeterministicReceiptData {
       userTotal: string;
     };
   };
+  breakdown?: {
+    baseAmountPaise: number;
+    discountBps: number;
+    discountPaise: number;
+    govtFundedPaise: number;
+    payablePaise: number;
+    platformFeePpm: number;
+    platformFeePaise: number;
+    totalPaidPaise: number;
+  };
   payment: {
     status: string;
     paymentRef: string | null;
+    completedAt?: string;
   };
   refunds: Array<{
     refundId: string;
@@ -99,7 +115,12 @@ export class ReceiptService {
       receiptNumber,
       transactionId: txn.txnId,
       timestamp: formattedDate,
+      issuedAt: formattedDate,
       serviceType: txn.serviceType,
+      service: {
+        serviceType: txn.serviceType,
+        description: item.description
+      },
       vaiCategory: txn.vaiCategoryAtTxn,
       citizen: {
         fullName: txn.user.fullName,
@@ -131,9 +152,20 @@ export class ReceiptService {
           userTotal: formatPaiseToINR(txn.userTotalPaise)
         }
       },
+      breakdown: {
+        baseAmountPaise: paiseToSafeNumber(txn.baseAmountPaise),
+        discountBps: txn.discountBps,
+        discountPaise: paiseToSafeNumber(txn.discountPaise),
+        govtFundedPaise: paiseToSafeNumber(txn.govtFundedPaise),
+        payablePaise: paiseToSafeNumber(txn.payablePaise),
+        platformFeePpm: txn.platformFeePpm,
+        platformFeePaise: paiseToSafeNumber(txn.platformFeePaise),
+        totalPaidPaise: paiseToSafeNumber(txn.userTotalPaise)
+      },
       payment: {
         status: txn.status,
-        paymentRef: txn.paymentRef
+        paymentRef: txn.paymentRef,
+        completedAt: formattedDate
       },
       refunds: txn.refunds.map((r) => ({
         refundId: r.refundId,

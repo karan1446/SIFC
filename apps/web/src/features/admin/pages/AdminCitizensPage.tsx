@@ -26,6 +26,14 @@ export const AdminCitizensPage: React.FC = () => {
     enabled: !!selectedUser,
   });
 
+  React.useEffect(() => {
+    if (!selectedUser && data?.users && data.users.length > 0) {
+      setSelectedUser(data.users[0].userId);
+    }
+  }, [data?.users, selectedUser]);
+
+  const citizen = (userDetail as any)?.user || userDetail;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -147,36 +155,48 @@ export const AdminCitizensPage: React.FC = () => {
                 <Activity className="w-4 h-4 animate-spin mr-2" />
                 <span>Loading profile details...</span>
               </div>
-            ) : userDetail?.user ? (
+            ) : citizen ? (
               <div className="space-y-4 text-xs">
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-200">
                   <div className="font-bold text-sm text-slate-900">
-                    {userDetail.user.fullName}
+                    {citizen.fullName}
                   </div>
                   <div className="text-slate-500 font-mono mt-0.5">
-                    PAN: {userDetail.user.panMasked}
+                    PAN: {citizen.panMasked}
                   </div>
+                  {citizen.mobileMasked && (
+                    <div className="text-slate-500 font-mono mt-0.5">
+                      Mobile: {citizen.mobileMasked}
+                    </div>
+                  )}
                   <div className="text-slate-500 mt-0.5">
-                    Location: {userDetail.user.city}, {userDetail.user.state}
+                    Location: {citizen.city}, {citizen.state}
                   </div>
-                  {userDetail.user.vaiScore && (
+                  {(citizen.score !== undefined && citizen.score !== null) ? (
                     <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between">
                       <span className="font-semibold text-slate-700">VAI Score:</span>
                       <span className="font-bold text-sm text-indigo-700">
-                        {userDetail.user.vaiScore.score} ({userDetail.user.vaiScore.category})
+                        {citizen.score} ({citizen.category || citizen.vaiScore?.category || "GOOD"})
                       </span>
                     </div>
-                  )}
+                  ) : citizen.vaiScore ? (
+                    <div className="mt-2 pt-2 border-t border-slate-200 flex items-center justify-between">
+                      <span className="font-semibold text-slate-700">VAI Score:</span>
+                      <span className="font-bold text-sm text-indigo-700">
+                        {citizen.vaiScore.score} ({citizen.vaiScore.category})
+                      </span>
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Vehicles List */}
                 <div>
                   <h3 className="font-bold text-slate-800 mb-2 flex items-center space-x-1">
                     <Car className="w-3.5 h-3.5 text-slate-500" />
-                    <span>Registered Vehicles ({(userDetail.user.vehicles || []).length})</span>
+                    <span>Registered Vehicles ({(citizen.vehicles || []).length})</span>
                   </h3>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {(userDetail.user.vehicles || []).map((v) => (
+                    {(citizen.vehicles || []).map((v: any) => (
                       <div
                         key={v.vehicleId}
                         className="p-2.5 bg-slate-50 rounded border border-slate-200 flex items-center justify-between"
@@ -185,7 +205,9 @@ export const AdminCitizensPage: React.FC = () => {
                           <div className="font-mono font-bold text-slate-800">
                             {v.registrationNo}
                           </div>
-                          <div className="text-[10px] text-slate-500">{v.vehicleType}</div>
+                          <div className="text-[10px] text-slate-500">
+                            {v.manufacturer ? `${v.manufacturer} ${v.model || ''} • ` : ''}{v.vehicleType}
+                          </div>
                         </div>
                         {v.compliance?.fullyCompliant ? (
                           <span className="inline-flex items-center space-x-1 text-[10px] text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded font-semibold">
@@ -206,13 +228,13 @@ export const AdminCitizensPage: React.FC = () => {
                 {/* Challans */}
                 <div>
                   <h3 className="font-bold text-slate-800 mb-2">
-                    Recent Challans ({(userDetail.user.challans || []).length})
+                    Recent Challans ({(citizen.challans || []).length})
                   </h3>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {(!userDetail.user.challans || userDetail.user.challans.length === 0) ? (
+                    {(!citizen.challans || citizen.challans.length === 0) ? (
                       <p className="text-slate-400 italic">No challans on file</p>
                     ) : (
-                      userDetail.user.challans.map((c) => (
+                      citizen.challans.map((c: any) => (
                         <div
                           key={c.challanId}
                           className="p-2 bg-slate-50 rounded border border-slate-200 flex items-center justify-between"
@@ -220,7 +242,7 @@ export const AdminCitizensPage: React.FC = () => {
                           <div>
                             <div className="font-medium text-slate-800">{c.violationDesc}</div>
                             <div className="text-[10px] text-slate-500">
-                              ₹{(c.amountPaise / 100).toFixed(2)} • {c.severity}
+                              ₹{(Number(c.amountPaise) / 100).toFixed(2)} • {c.severity}
                             </div>
                           </div>
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-200 text-slate-800">
